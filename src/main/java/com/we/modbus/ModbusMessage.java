@@ -33,8 +33,8 @@ public class ModbusMessage {
     
     @Override
     public String toString(){
-        String text = "\r\nИдентификатор транзакции: " + transId + "\r\nДлина сообщения: "
-                + length + "\r\n" + ByteUtils.toHex(buff,length);
+        String text = "Иден-р транзакции: " + transId + " Длина сообщ.: "
+                + length + " " + ByteUtils.toHex(buff,length);
         return text;
     }
 }

@@ -13,10 +13,6 @@ public class ModbusMaster extends Modbus {
 
 	private final static Logger logger = LoggerFactory.getLogger(ModbusMaster.class);
 
-	// Мобас сообщения для прием и посылки
-	private ModbusMessage request;
-	private ModbusMessage response;
-
 	/**
 	 * Конструктор класса. Принимает объект ModbusTransport
 	 * 
@@ -28,9 +24,6 @@ public class ModbusMaster extends Modbus {
 	 */
 	public ModbusMaster(ModbusTransport transport) {
 		super(transport);
-
-		request = new ModbusMessage();
-		response = new ModbusMessage();
 	}
 
 	/**
@@ -521,7 +514,7 @@ public class ModbusMaster extends Modbus {
 		// byte 6 = Количество следующих байт данных
 		// byte 7+2n = Старший байт данных n
 		// byte 8+2n = Младший байт данных n
-		makeHead(unitId, reference, length, transId, function);
+		ModbusMessage request = makeHead(unitId, reference, length, transId, function);
 		
 		if (function == Function.WRITE_MULTIPLE_REGISTERS) {
 			
@@ -568,9 +561,11 @@ public class ModbusMaster extends Modbus {
 			// Длина запроса
 			request.length = 6;
 		}
+		
+		ModbusMessage response = sendRequest(request);
 
 		// Посылка запроса
-		if (!sendRequest()) {
+		if (response == null) {
 			return false;
 		}
 
@@ -698,8 +693,9 @@ public class ModbusMaster extends Modbus {
 	 * @param codeFunction
 	 *            Код функции Modbus
 	 */
-	private void makeHead(int unitId, int reference, int length, int transId, Function function) {
+	private ModbusMessage makeHead(int unitId, int reference, int length, int transId, Function function) {
 
+		ModbusMessage request = new ModbusMessage();
 		// byte 0 = адрес ведомого
 		// byte 1 = код функции
 		// byte 2 = старший байт адреса регистра
@@ -719,6 +715,7 @@ public class ModbusMaster extends Modbus {
 		}
 		// Идентификатор транзакции
 		request.transId = transId;
+		return request;
 	}
 
 	/**
@@ -751,11 +748,13 @@ public class ModbusMaster extends Modbus {
 		// Проверяем входные аргументы
 		checkArgs(unitId, reference, length, transId);
 
-		makeHead(unitId, reference, length, transId, function);
+		ModbusMessage request = makeHead(unitId, reference, length, transId, function);
 
 		request.length = 6;
 
-		if (!sendRequest()) {
+		ModbusMessage response = sendRequest(request);
+		
+		if (response == null) {
 			return false;
 		}
 
@@ -824,19 +823,21 @@ public class ModbusMaster extends Modbus {
 	 * 
 	 * @param request
 	 *            Modbus запрос
-	 * @return Возвращает true, если запрос отправлен успешно и получен ответ
+	 * @return Возвращает ответ, если запрос отправлен успешно и получен ответ
 	 * @throws IOException
 	 */
-	private boolean sendRequest() throws IOException {
+	private ModbusMessage sendRequest(ModbusMessage request) throws IOException {
 
 		if (!sendFrame(request)) {
 			logger.debug("ModbusMaster: Посылка неуспешна");
-			return false;
+			return null;
 		}
 
+		ModbusMessage response = new ModbusMessage();
+		
 		if (receiveFrame(response) < 1) {
 			logger.debug("ModbusMaster: Прием неуспешен");
-			return false;
+			return null;
 		}
 
 		// Проверяем ответ
@@ -844,8 +845,8 @@ public class ModbusMaster extends Modbus {
 		// Ответ должен быть не меньше 3 байт
 		if (response.length < 3) {
 			logger.warn("ModbusMaster: Некорректный размер [{}] принятого сообщения", response.length);
-			return false;
+			return null;
 		}
-		return true;
+		return response;
 	}
 }

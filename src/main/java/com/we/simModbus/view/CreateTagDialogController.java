@@ -18,6 +18,8 @@ public class CreateTagDialogController {
 	private TextField addressTagField;
 	@FXML
 	private TextField valueTagField;
+	@FXML
+	private TextField countTagField;
 	
 	private Stage dialogStage;
 	private TagForm tag;
@@ -29,6 +31,7 @@ public class CreateTagDialogController {
 	 */
 	@FXML
 	private void initialize(){
+		countTagField.setText("1");
 	}
 	
 	/**
@@ -74,6 +77,7 @@ public class CreateTagDialogController {
 			tag.setType(typeTagField.getValue());
 			tag.setAddress(Integer.parseInt(addressTagField.getText()));
 			tag.setValue(valueTagField.getText());
+			tag.setCount(Integer.parseInt(countTagField.getText()));
 			
 			okClicked = true;
 			dialogStage.close();
@@ -94,6 +98,7 @@ public class CreateTagDialogController {
 	 * @return true, если пользовательский ввод корректен
 	 */
 	private boolean isInputValid(){
+		// TODO validate creating new tag
 		return true;
 	}
 }

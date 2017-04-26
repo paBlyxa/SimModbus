@@ -13,12 +13,14 @@ public class TagForm {
 	private ObjectProperty<Type> type;
 	private IntegerProperty address;
 	private StringProperty value;
+	private IntegerProperty count;
 	
 	public TagForm() {
 		name = new SimpleStringProperty();
 		type = new SimpleObjectProperty<Type>();
 		address = new SimpleIntegerProperty();
 		value = new SimpleStringProperty();
+		count = new SimpleIntegerProperty();
 	}
 
 	public String getName() {
@@ -67,5 +69,17 @@ public class TagForm {
 	
 	public StringProperty getValueProperty() {
 		return value;
+	}
+	
+	public int getCount() {
+		return count.get();
+	}
+
+	public IntegerProperty getCountProperty() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count.set(count);
 	}
 }
