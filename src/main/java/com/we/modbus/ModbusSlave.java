@@ -1,5 +1,7 @@
 package com.we.modbus;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +10,8 @@ public class ModbusSlave extends Modbus {
 	private final static Logger logger = LoggerFactory.getLogger(ModbusMaster.class);
 	
 	private int address;
+	private final int maxAddress;
+	private final MemoryModel memoryModel;
 	
 	 /**
      * Конструктор класса. Принимает объект ModbusTransport
@@ -16,9 +20,12 @@ public class ModbusSlave extends Modbus {
      * 
      * @param transport Объект ModbusTransport, который должен использоваться
      * этим Modbus объектом для приема и посылки сообщений
+     * @param maxAddress Максимальный адрес регистра
      */
-	public ModbusSlave(ModbusTransport transport) {
+	public ModbusSlave(ModbusTransport transport, MemoryModel memoryModel, int maxAddress) {
 		super(transport);
+		this.memoryModel = memoryModel;
+		this.maxAddress = maxAddress;
 	}
 
 	/**
@@ -26,8 +33,9 @@ public class ModbusSlave extends Modbus {
 	 * 
 	 * @return возвращает количество принятых байт или
 	 * -1 если неуспешно.
+	 * @throws IOException 
 	 */
-	public int handleRequest(){
+	public int handleRequest() throws IOException{
 		ModbusMessage request = new ModbusMessage();
 		
 		// Получаем новый запрос
@@ -49,18 +57,27 @@ public class ModbusSlave extends Modbus {
 		}	
 		if (function == null){
 			logger.warn("ModbusSlave: Некорректный код функции [{}]", request.buff[1]);
-			sendFaultAnswer(request.buff[1], ErrorCode.UnknownFunctionCode);
+			sendFaultAnswer(request, ErrorCode.UnknownFunctionCode);
 			return -1;
 		}
 		
+		// Адрес регистра
+		int regAddress = ((request.buff[2] & 0xFF) << 8) + (request.buff[3] & 0xFF);
+		
 		switch(function){
+		case READ_COIL_STATUS:
+			if (regAddress / 16 > maxAddress){
+				logger.warn("ModbusSlave: Некорректный адрес флага [{}]", regAddress);
+				sendFaultAnswer(request, ErrorCode.UnavailableRegisterAddress);
+				return -1;
+			}
+			
+			break;
 		case FORCE_MULTIPLE_COILS:
 			break;
 		case FORCE_SINGLE_COIL:
 			break;
 		case MASK_WRITE_REGISTER:
-			break;
-		case READ_COIL_STATUS:
 			break;
 		case READ_DISCRETE_INPUTS:
 			break;
@@ -83,10 +100,18 @@ public class ModbusSlave extends Modbus {
 	/**
 	 * Отправляем ответ с ошибкой
 	 * 
-	 * @param functionCode принятый код функции
+	 * @param request принятый запрос
 	 * @param errorCode код ошибки
+	 * @throws IOException 
 	 */
-	private void sendFaultAnswer(byte functionCode, ErrorCode errorCode){
-		// TODO send fault answer
+	private void sendFaultAnswer(ModbusMessage request, ErrorCode errorCode) throws IOException{
+		ModbusMessage response = new ModbusMessage();
+		response.transId = request.transId;
+		response.length = 3;
+		response.buff[0] = request.buff[0];
+		response.buff[1] = (byte) (request.buff[1] + EXCEPTION_MODIFIER);
+		response.buff[2] = (byte) errorCode.getCode();
+		sendFrame(response);
+		
 	}
 }
