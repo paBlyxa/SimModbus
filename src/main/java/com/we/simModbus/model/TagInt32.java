@@ -14,7 +14,7 @@ public class TagInt32 extends Tag {
 	
 	@Override
 	public int size() {
-		return 2;
+		return 4;
 	}
 
 	@Override

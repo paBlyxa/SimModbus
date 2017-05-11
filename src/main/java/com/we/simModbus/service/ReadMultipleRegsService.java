@@ -1,9 +1,10 @@
-package com.we.simModbus;
+package com.we.simModbus.service;
+
+import java.util.List;
 
 import com.we.modbus.ModbusTCPMaster;
 import com.we.simModbus.model.Tag;
 
-import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
@@ -13,14 +14,14 @@ public class ReadMultipleRegsService extends Service<Void> {
 	private int readReference;
 	private int readLength;
 	private int[] readResults;
-	private ObservableList<Tag> tagList;
+	private List<Tag> tagList;
 	private Tag tag;
 
 	public ReadMultipleRegsService(ModbusTCPMaster modbusTCPMaster) {
 		this.modbusTCPMaster = modbusTCPMaster;
 	}
 
-	public ReadMultipleRegsService(ModbusTCPMaster modbusTCPMaster, ObservableList<Tag> tagList) {
+	public ReadMultipleRegsService(ModbusTCPMaster modbusTCPMaster, List<Tag> tagList) {
 		this.modbusTCPMaster = modbusTCPMaster;
 		this.tagList = tagList;
 	}
@@ -77,7 +78,7 @@ public class ReadMultipleRegsService extends Service<Void> {
 			}
 		} else {
 			readReference = tag.getAddress();
-			readLength = 1;
+			readLength = (tag.size() + 1) / 2;
 		}
 	}
 

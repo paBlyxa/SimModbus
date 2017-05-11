@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.we.simModbus.MainApp;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Tab;
@@ -89,6 +90,6 @@ public class RootLayoutController {
 	 */
 	@FXML
 	private void handleExit() {
-		System.exit(0);
+		Platform.exit();
 	}
 }

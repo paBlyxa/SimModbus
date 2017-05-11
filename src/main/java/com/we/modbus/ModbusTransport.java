@@ -2,6 +2,8 @@ package com.we.modbus;
 
 import java.io.IOException;
 
+import com.we.modbus.model.ModbusMessage;
+
 /**
  *
  * @author fakadey

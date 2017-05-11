@@ -1,4 +1,4 @@
-package com.we.simModbus;
+package com.we.simModbus.service;
 
 import java.io.IOException;
 

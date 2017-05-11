@@ -1,5 +1,6 @@
 package com.we.simModbus.view;
 
+import com.we.modbus.model.ModbusDataModel;
 import com.we.simModbus.MainApp;
 import com.we.simModbus.model.Tag;
 import com.we.simModbus.model.TagBool;
@@ -8,15 +9,15 @@ import com.we.simModbus.model.TagForm;
 import com.we.simModbus.model.TagInt16;
 import com.we.simModbus.model.TagInt32;
 import com.we.simModbus.model.Type;
-import com.we.simModbus.service.TagHandler;
+import com.we.simModbus.service.TagDataModel;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -25,6 +26,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
@@ -53,27 +55,13 @@ public abstract class ModbusViewController {
 	// Ссылка на главное приложение
 	private MainApp mainApp;
 
-	private ObservableList<Tag> tagList = FXCollections.observableArrayList();
-	private TagHandler tagHandler;
-	private final BooleanProperty isConnected;
-
+	protected final BooleanProperty isConnected;
+	private final TagDataModel dataModel;
+	
 	public ModbusViewController() {
 		isConnected = new SimpleBooleanProperty(false);
 
-		// В качестве образца добавляем данные.
-		Tag tag1 = new TagInt16();
-		tag1.setAddress(1);
-		tag1.setName("tag1");
-		tag1.setType(Type.INT);
-		tag1.setValue(5);
-
-		Tag tag2 = new TagInt16();
-		tag2.setAddress(2);
-		tag2.setName("tag2");
-		tag2.setType(Type.INT);
-		tag2.setValue(0);
-
-		tagList.addAll(tag1, tag2);
+		dataModel = new TagDataModel(100);
 	}
 
 	/**
@@ -87,6 +75,8 @@ public abstract class ModbusViewController {
 		typeColumn.setCellValueFactory(new PropertyValueFactory<Tag, Type>("type"));
 		addressColumn.setCellValueFactory(new PropertyValueFactory<Tag, Integer>("address"));
 		valueColumn.setCellValueFactory(cellData -> cellData.getValue().getValueProperty());
+		valueColumn.setCellFactory(col -> new IntegerEditingCell(dataModel));
+		
 		status.setText("");
 		port.setText("502");
 		registerTable.setEditable(true);
@@ -94,7 +84,7 @@ public abstract class ModbusViewController {
 			@Override
 			public TableRow<Tag> call(TableView<Tag> tableView) {
 				final TableRow<Tag> row = new TableRow<>();
-				final ContextMenu rowMenu = new ContextMenuTag(tagHandler, row, isConnected);
+				final ContextMenu rowMenu = getRowContextMenu(row);
 
 				// "Borrow" menu items from table's context menu,
 				// if there is one.
@@ -108,11 +98,13 @@ public abstract class ModbusViewController {
 		});
 
 		// Добавление в таблицу данных из наблюдаемого списка
-		registerTable.setItems(tagList);
-		
+		registerTable.setItems(dataModel.getTagList());
 		initializeChild();
 	}
 
+	/**
+	 * Метод вызывается при добавлении новой переменной.
+	 */
 	@FXML
 	private void handleNewTag() {
 		TagForm tagForm = new TagForm();
@@ -155,16 +147,51 @@ public abstract class ModbusViewController {
 				}
 				tag.setType(tagForm.getType());
 				tag.setAddress(tagForm.getAddress() + i);
-				tagList.add(tag);
+				dataModel.addTag(tag);
 			}
 		}
 	}
 
+	/**
+	 * Метод вызывается при удалении переменной.
+	 */
+	@FXML
+	private void handleDelete() {
+		int selectedIndex = registerTable.getSelectionModel().getSelectedIndex();
+		if (selectedIndex >= 0) {
+			Tag tag = registerTable.getItems().remove(selectedIndex);
+			delete(tag);
+		} else {
+			// Ничего не выбрано.
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.initOwner(mainApp.getPrimaryStage());
+			alert.setTitle("No Selection");
+			alert.setHeaderText("No Person Selected");
+			alert.setContentText("Please select a person in the table.");
+			
+			alert.showAndWait();
+		}
+	}
+	
+	/**
+	 * Метод для удаления переменной.
+	 * @param tag
+	 */
+	public void delete(Tag tag){
+		dataModel.deleteTag(tag);
+	}
+	
+	/**
+	 * Метод вызывается когда нажали кнопку "Подключить".
+	 */
 	@FXML
 	private void handleConnect() {
 		connect();
 	}
 
+	/**
+	 * Метод вызывается когда нажали кнопку "Отключить".
+	 */
 	@FXML
 	private void handleDisconnect() {
 		disconnect();
@@ -177,10 +204,6 @@ public abstract class ModbusViewController {
 	 */
 	public void setMainApp(MainApp mainAp) {
 		this.mainApp = mainAp;
-	}
-
-	public void setTagHandler(TagHandler tagHandler) {
-		this.tagHandler = tagHandler;
 	}
 
 	/**
@@ -228,9 +251,16 @@ public abstract class ModbusViewController {
 	 * @return
 	 */
 	public ObservableList<Tag> getTagList() {
-		return tagList;
+		return dataModel.getTagList();
 	}
 
+	/**
+	 * Возвращает модель памяти
+	 */
+	protected TagDataModel getDataModel(){
+		return dataModel;
+	}
+	
 	/**
 	 * Задает состояние подключения
 	 * 
@@ -273,7 +303,16 @@ public abstract class ModbusViewController {
 	 */
 	public abstract void disconnect();
 	
+	/**
+	 * Возвращает контекстное меню для строки в таблице.
+	 * @return
+	 */
+	public abstract ContextMenu getRowContextMenu(TableRow<Tag> row);
+	
+	/**
+	 * Метод для инициализации.
+	 * Должен быть реализован в классе наследнике.
+	 */
 	public void initializeChild(){
-		
 	}
 }

@@ -78,8 +78,8 @@ public class ByteUtils {
         
         while (len > 0){
             if (len <= 8){
-                str.append(toHex(count));
-                str.append(": ");
+               // str.append(toHex(count));
+               // str.append(": ");
                 while (len > 0){
                     str.append(toHex(b[count]));
                     str.append(' ');
@@ -88,8 +88,8 @@ public class ByteUtils {
                 }
             }
             else{
-                str.append(toHex(count));
-                str.append(": ");
+               // str.append(toHex(count));
+               // str.append(": ");
                 for (int i = 0; i < 8; i++){
                     str.append(toHex(b[count]));
                     str.append(' ');

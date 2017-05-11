@@ -14,7 +14,7 @@
             <Label fx:id="status" text="Label" />
             <Region HBox.hgrow="ALWAYS" />
             <Button layoutX="444.0" layoutY="274.0" mnemonicParsing="false" onAction="#handleNewTag" text="New" AnchorPane.bottomAnchor="2.0" />
-            <Button layoutX="495.0" layoutY="273.0" mnemonicParsing="false" text="Delete" />
+            <Button layoutX="495.0" layoutY="273.0" mnemonicParsing="false" onAction="#handleDelete" text="Delete" />
          </children>
          <padding>
             <Insets left="5.0" right="5.0" top="5.0" />

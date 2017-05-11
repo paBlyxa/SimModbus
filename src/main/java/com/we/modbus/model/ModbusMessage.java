@@ -1,4 +1,7 @@
-package com.we.modbus;
+package com.we.modbus.model;
+
+import com.we.modbus.ByteUtils;
+import com.we.modbus.Modbus;
 
 /**
  *

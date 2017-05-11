@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import com.we.simModbus.model.TagForm;
 import com.we.simModbus.view.CreateTagDialogController;
-import com.we.simModbus.view.ModbusMasterViewController;
 import com.we.simModbus.view.RootLayoutController;
 
 import javafx.application.Application;
@@ -33,10 +32,13 @@ public class MainApp extends Application {
 		this.primaryStage.setTitle("Modbus Simulator");
 
 		initRootLayout();
-
-		//showModbusSlave();
 	}
 
+	@Override
+	public void stop(){
+		// TODO stop all threads
+	}
+	
 	/**
 	 * Инициализирует корневой макет.
 	 */
@@ -56,28 +58,6 @@ public class MainApp extends Application {
 			controller.setMainApp(this);
 						
 			primaryStage.show();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Показывает в корневом макете ModbusSlave.
-	 */
-	public void showModbusSlave() {
-		try {
-			// Загружаем сведения об адресатах.
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(MainApp.class.getResource("view/ModbusSlaveTCP.fxml"));
-			BorderPane modbusSlaveView = (BorderPane) loader.load();
-
-			// Помещаем вид в центр корневого макета.
-			rootLayout.setCenter(modbusSlaveView);
-
-			// Даем контроллеру доступ к главному приложению.
-			ModbusMasterViewController controller = loader.getController();
-			controller.setMainApp(this);
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

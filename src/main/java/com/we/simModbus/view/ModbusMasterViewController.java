@@ -1,15 +1,18 @@
 package com.we.simModbus.view;
 
 import com.we.modbus.ModbusTCPMaster;
-import com.we.simModbus.MasterTask;
-import com.we.simModbus.ReadMultipleRegsService;
 import com.we.simModbus.model.Tag;
-import com.we.simModbus.service.TagHandler;
+import com.we.simModbus.service.MasterTask;
+import com.we.simModbus.service.ReadMultipleRegsService;
+import com.we.simModbus.service.TagDeleteHandler;
+import com.we.simModbus.service.TagRWHandler;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
@@ -18,7 +21,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ModbusMasterViewController extends ModbusViewController implements TagHandler {
+public class ModbusMasterViewController extends ModbusViewController implements TagRWHandler, TagDeleteHandler {
 
 	private final static Logger logger = LoggerFactory.getLogger(ModbusMasterViewController.class);
 
@@ -33,7 +36,6 @@ public class ModbusMasterViewController extends ModbusViewController implements 
 	 * Конструктор. Конструктор вызывается раньше метода initialize().
 	 */
 	public ModbusMasterViewController() {
-		setTagHandler(this);
 		
 	}
 
@@ -178,8 +180,8 @@ public class ModbusMasterViewController extends ModbusViewController implements 
 	}
 
 	@Override
-	public void delete(Tag tag) {
-		// TODO Auto-generated method stub
-
+	public ContextMenu getRowContextMenu(TableRow<Tag> row) {
+		return ContextMenuFactory.getContextMenuMaster(this, this, row, isConnected);
 	}
+
 }

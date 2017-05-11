@@ -6,6 +6,8 @@ import java.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.we.modbus.model.ModbusMessage;
+
 /**
  *
  * @author fakadey
@@ -62,11 +64,6 @@ public class ModbusTCPTransport implements ModbusTransport {
 	private int count = 0;
 	private int recv = 0;
 
-	// Флаг, что заголовок проверен
-	private boolean header_check = false;
-
-	// Размер данных приема и передачи
-	private int request_body_length;
 	//private int reply_length;
 
 	private int protocol_identifier;
@@ -202,6 +199,12 @@ public class ModbusTCPTransport implements ModbusTransport {
 
 		logger.debug("ModbusTCPTransport: Прием пакета.....");
 
+		// Флаг, что заголовок проверен
+		boolean header_check = false;
+
+		// Размер данных приема и передачи
+		int request_body_length;
+		
 		// Чтение заголовка
 		count = 0;
 		while (count < HEADER_LENGTH) {
@@ -283,7 +286,8 @@ public class ModbusTCPTransport implements ModbusTransport {
 		// Сохраняем длину полученных данных
 		msg.length = request_body_length;
 
-		logger.debug("ModbusTCPTransport: Пакет принят");
+		logger.debug("ModbusTCPTransport: Пакет принят [{}]", ByteUtils.toHex(msg.buff, request_body_length));
+		logger.info("Receive: {} {}", ByteUtils.toHex(receive_header, HEADER_LENGTH), ByteUtils.toHex(msg.buff, request_body_length));
 		return HEADER_LENGTH + request_body_length;
 	}
 

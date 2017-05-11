@@ -29,7 +29,7 @@ public class TagBool extends Tag{
 
 	@Override
 	public void setValue(Number value) {
-		this.value.set((int) value);
+		this.value.set((Integer) value);
 		
 	}
 

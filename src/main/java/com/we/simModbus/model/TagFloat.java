@@ -24,7 +24,11 @@ public class TagFloat extends Tag {
 
 	@Override
 	public void setValue(Number value) {
-		this.value.set((float) value);
+		if (value instanceof Integer){
+			this.value.set(Float.intBitsToFloat((int) value));
+		} else {
+			this.value.set((Float) value);
+		}
 	}
 
 	@Override

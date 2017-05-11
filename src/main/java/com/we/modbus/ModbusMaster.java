@@ -5,6 +5,10 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.we.modbus.model.ErrorCode;
+import com.we.modbus.model.Function;
+import com.we.modbus.model.ModbusMessage;
+
 /**
  *
  * @author fakadey
@@ -278,7 +282,7 @@ public class ModbusMaster extends Modbus {
 	 */
 	public boolean setSingleCoil(int reference) throws IllegalArgumentException, IOException{
 		int[] values = {0xFF00};
-		return writeRegs(0, reference, 1, 0, Function.FORCE_SINGLE_COIL, values);
+		return writeRegs(0, reference, 1, 0, Function.WRITE_SINGLE_COIL, values);
 	}
 	
 	/**
@@ -299,7 +303,7 @@ public class ModbusMaster extends Modbus {
 	 */
 	public boolean setSingleCoil(int unitId, int reference, int transId) throws IllegalArgumentException, IOException{
 		int[] values = {0xFF00};
-		return writeRegs(unitId, reference, 1, transId, Function.FORCE_SINGLE_COIL, values);
+		return writeRegs(unitId, reference, 1, transId, Function.WRITE_SINGLE_COIL, values);
 	}	
 	
 	/**
@@ -316,7 +320,7 @@ public class ModbusMaster extends Modbus {
 	 */
 	public boolean resetSingleCoil(int reference) throws IllegalArgumentException, IOException{
 		int[] values = {0x0000};
-		return writeRegs(0, reference, 1, 0, Function.FORCE_SINGLE_COIL, values);
+		return writeRegs(0, reference, 1, 0, Function.WRITE_SINGLE_COIL, values);
 	}
 	
 	/**
@@ -337,7 +341,7 @@ public class ModbusMaster extends Modbus {
 	 */
 	public boolean resetSingleCoil(int unitId, int reference, int transId) throws IllegalArgumentException, IOException{
 		int[] values = {0x0000};
-		return writeRegs(unitId, reference, 1, transId, Function.FORCE_SINGLE_COIL, values);
+		return writeRegs(unitId, reference, 1, transId, Function.WRITE_SINGLE_COIL, values);
 	}	
 
 	/**
@@ -357,7 +361,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean forceMultipleCoils(int reference, int length, int[] values) throws IllegalArgumentException, IOException {
-		return writeRegs(0, reference, length, 0, Function.FORCE_MULTIPLE_COILS, values);
+		return writeRegs(0, reference, length, 0, Function.WRITE_MULTIPLE_COILS, values);
 	}
 	
 	/**
@@ -381,7 +385,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean forceMultipleCoils(int unitId, int reference, int length, int transId, int[] values) throws IllegalArgumentException, IOException {
-		return writeRegs(unitId, reference, length, transId, Function.FORCE_MULTIPLE_COILS, values);
+		return writeRegs(unitId, reference, length, transId, Function.WRITE_MULTIPLE_COILS, values);
 	}
 	
 	/**
@@ -530,7 +534,7 @@ public class ModbusMaster extends Modbus {
 			// Длина запроса
 			request.length = 7 + 2 * length;
 
-		} else if (function == Function.FORCE_MULTIPLE_COILS) {
+		} else if (function == Function.WRITE_MULTIPLE_COILS) {
 			
 			// Количество байт данных
 			request.buff[6] = (byte) ((length + 7) / 8);
@@ -615,7 +619,7 @@ public class ModbusMaster extends Modbus {
 			return false;
 		}
 
-		if (function != Function.WRITE_SINGLE_REGISTER && function != Function.FORCE_SINGLE_COIL && function != Function.MASK_WRITE_REGISTER) {
+		if (function != Function.WRITE_SINGLE_REGISTER && function != Function.WRITE_SINGLE_COIL && function != Function.MASK_WRITE_REGISTER) {
 			// Проверяем количество регистров
 			if (length != ((response.buff[4] << 8) + (response.buff[5]) & 0xFFFF)) {
 				logger.warn("ModbusMaster: Incorrect return word count [{}]",
@@ -706,7 +710,7 @@ public class ModbusMaster extends Modbus {
 		request.buff[1] = function.getCode();
 		request.buff[2] = (byte) ((reference >> 8) & 0xFF);
 		request.buff[3] = (byte) ((reference) & 0xFF);
-		if (function != Function.WRITE_SINGLE_REGISTER && function != Function.FORCE_SINGLE_COIL && function != Function.MASK_WRITE_REGISTER) {
+		if (function != Function.WRITE_SINGLE_REGISTER && function != Function.WRITE_SINGLE_COIL && function != Function.MASK_WRITE_REGISTER) {
 			request.buff[4] = (byte) ((length >> 8) & 0xFF);
 			request.buff[5] = (byte) ((length) & 0xFF);
 
