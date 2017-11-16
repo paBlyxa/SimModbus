@@ -5,6 +5,7 @@ import java.util.List;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -71,7 +72,7 @@ public class TCPServer {
 						ServerThread serverThread = new ServerThread(tcpHandlerFactory.createTCPHandler(socket));
 						executor.execute(serverThread);
 						numConnections++;
-						logger.debug("New server thread has started");
+						logger.debug("New server thread has started, numConnections = {}", numConnections);
 						updateStatus("A new connection has accepted");
 					} else {
 						logger.warn("Maximum connections reached");
@@ -97,6 +98,7 @@ public class TCPServer {
 		}
 		executor.shutdownNow();
 		close();
+		numConnections = 0;
 		logger.debug("TCP server has stoped");
 	}
 	
@@ -135,7 +137,14 @@ public class TCPServer {
 		public void run() {
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
-					handler.handle();
+					int recvCount = handler.handle();
+					if (recvCount < 0){
+						break;
+					}
+				} catch (SocketException e){
+					logger.debug("An socket exception occured when handle request", e);
+					logger.info("Stop this handler, because of socket exception");
+					Thread.currentThread().interrupt();
 				} catch (IOException e) {
 					logger.debug("An error occurred when handle request", e);
 				}
@@ -144,6 +153,11 @@ public class TCPServer {
 				handler.close();
 			} catch (IOException e) {
 				logger.debug("An error occured while closing socket", e);
+			} finally {
+				synchronized(numConnections){
+					numConnections--;
+					logger.debug("Connection closed, numConnections = {}", numConnections);
+				}
 			}
 		}
 		

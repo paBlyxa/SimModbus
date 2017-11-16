@@ -7,18 +7,19 @@ import com.we.modbus.ModbusTCPMaster;
 import com.we.modbus.model.ModbusDataModel;
 import com.we.simModbus.model.Tag;
 
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
-public class ReadMultipleRegsService extends Service<Void> {
+public class ReadMultipleRegsScheduleService extends TagScheduleServiceThread {
 
 	private final ReadMultipleRegsTaskFactory factory;
 
-	public ReadMultipleRegsService(int unitId, ModbusTCPMaster modbusTCPMaster, ModbusDataModel dataModel, TransactionIdFactory transactionIdFactory) {
+	public ReadMultipleRegsScheduleService(int unitId, ModbusTCPMaster modbusTCPMaster, ModbusDataModel dataModel,
+			TransactionIdFactory transactionIdFactory) {
 		factory = new ReadMultipleRegsTaskFactory(unitId, modbusTCPMaster, dataModel, transactionIdFactory);
 	}
 
-	public ReadMultipleRegsService(int unitId, ModbusTCPMaster modbusTCPMaster, ModbusDataModel dataModel, TransactionIdFactory transactionIdFactory, Executor executor) {
+	public ReadMultipleRegsScheduleService(int unitId, ModbusTCPMaster modbusTCPMaster, ModbusDataModel dataModel,
+			TransactionIdFactory transactionIdFactory, Executor executor) {
 		this(unitId, modbusTCPMaster, dataModel, transactionIdFactory);
 		this.setExecutor(executor);
 	}
@@ -31,6 +32,7 @@ public class ReadMultipleRegsService extends Service<Void> {
 	/**
 	 * Add tag to set
 	 */
+	@Override
 	public void add(Tag tag) {
 		factory.add(tag);
 	}
@@ -45,6 +47,7 @@ public class ReadMultipleRegsService extends Service<Void> {
 	/**
 	 * Remove tag from set
 	 */
+	@Override
 	public boolean remove(Tag tag) {
 		return factory.remove(tag);
 	}
@@ -54,6 +57,7 @@ public class ReadMultipleRegsService extends Service<Void> {
 	 * 
 	 * @return true if set conteins tag
 	 */
+	@Override
 	public boolean contains(Tag tag) {
 		return factory.contains(tag);
 	}
@@ -63,20 +67,25 @@ public class ReadMultipleRegsService extends Service<Void> {
 	 * 
 	 * @return true if this set contains no elements.
 	 */
+	@Override
 	public boolean isEmpty() {
 		return factory.isEmpty();
 	}
 
 	/**
-	 * Attempts to cancel execution of this task.
+	 * Attempts to cancel execution of this task. Returns:whether any running
+	 * task was cancelled, false if no task was cancelled. In any case, the
+	 * ScheduledService will stop iterating.
 	 */
-	public void stop() {
-		this.cancel();
+	@Override
+	public boolean stop() {
+		return cancel();
 	}
 
 	/**
 	 * @return true if task is not executing.
 	 */
+	@Override
 	public boolean isStopped() {
 		return !this.isRunning();
 	}

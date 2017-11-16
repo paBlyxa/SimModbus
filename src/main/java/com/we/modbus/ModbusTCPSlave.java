@@ -21,11 +21,27 @@ public class ModbusTCPSlave extends ModbusSlave implements TCPHandler {
 	 */
 	public ModbusTCPSlave(Socket socket, ModbusDataModel dataModel) throws IOException {
 		super(new ModbusTCPTransport(socket), dataModel);
-		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Конструктор для создания ModbusTCPSlave устройства.
+	 * @param socket созданное соединение между клиентом и сервером
+	 * @param dataModel модель данных
+	 * @oaran modbusSlaveAddress Адрес слэйв (Modbus адрес)
+	 * @throws IOException
+	 */
+	public ModbusTCPSlave(Socket socket, ModbusDataModel dataModel, byte modbusSlaveAddress) throws IOException {
+		super(new ModbusTCPTransport(socket), dataModel, modbusSlaveAddress);
+	}
+
+	/**
+	 * Метод для обработки запросов.
+	 * 
+	 * @return возвращает количество принятых байт или -1 если неуспешно.
+	 * @throws IOException
+	 */
 	@Override
-	public void handle() throws IOException{
-		handleRequest();
+	public int handle() throws IOException{
+		return handleRequest();
 	}
 }

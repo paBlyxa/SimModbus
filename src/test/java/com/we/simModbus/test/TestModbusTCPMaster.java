@@ -11,7 +11,7 @@ import com.we.modbus.ModbusTCPMaster;
 
 public class TestModbusTCPMaster {
 
-	private final static String ipAddress = "192.168.0.152";
+	private final static String ipAddress = "127.0.0.1";
 	private final static int port = 502;
 
 	@Test
@@ -19,7 +19,7 @@ public class TestModbusTCPMaster {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
 			for (int i = 1; i < 20; i++) {
-				int[] results = new int[(i + 15) / 16];
+				byte[] results = new byte[(i + 7) / 8];
 				assertTrue(modbusMaster.readCoilStatus(0, i, results));
 				assertNotNull(results);
 				System.out.println("Receive coil status from 1 to " + i + " values: " + Arrays.toString(results));
@@ -34,7 +34,7 @@ public class TestModbusTCPMaster {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
 			for (int i = 1; i < 20; i++) {
-				int[] results = new int[(i + 15) / 16];
+				byte[] results = new byte[(i + 7) / 8];
 				assertTrue(modbusMaster.readDiscreteInputs(0, i, results));
 				assertNotNull(results);
 				System.out.println("Receive discrete inputs from 1 to " + i + " values: " + Arrays.toString(results));
@@ -49,7 +49,7 @@ public class TestModbusTCPMaster {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
 			for (int i = 1; i < 20; i++) {
-				int[] results = new int[i];
+				byte[] results = new byte[i * 2];
 				assertTrue(modbusMaster.readMultipleRegisters(0, i, results));
 				assertNotNull(results);
 				System.out
@@ -65,7 +65,7 @@ public class TestModbusTCPMaster {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
 			for (int i = 1; i < 20; i++) {
-				int[] results = new int[i];
+				byte[] results = new byte[i * 2];
 				assertTrue(modbusMaster.readInputRegisters(0, i, results));
 				assertNotNull(results);
 				System.out.println("Receive input registers from 1 to " + i + " values: " + Arrays.toString(results));
@@ -107,9 +107,9 @@ public class TestModbusTCPMaster {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
 			for (int i = 1; i < 20; i++) {
-				int[] values = new int[(i + 7) / 8];
+				byte[] values = new byte[(i + 7) / 8];
 				for (int j = 0; j < values.length; j++) {
-					values[j] = i + j;
+					values[j] = (byte) (i);
 				}
 				assertTrue(modbusMaster.forceMultipleCoils(0, i, values));
 			}
@@ -123,9 +123,9 @@ public class TestModbusTCPMaster {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
 			for (int i = 1; i < 20; i++) {
-				int[] values = new int[i];
+				byte[] values = new byte[i * 2];
 				for (int j = 0; j < i; j++) {
-					values[j] = i + j;
+					values[j*2 + 1] = (byte) (j);
 				}
 				assertTrue(modbusMaster.writeMultipleRegisters(0, i, values));
 			}
@@ -138,9 +138,11 @@ public class TestModbusTCPMaster {
 	public void testMaskWriteRegister() {
 		try {
 			ModbusTCPMaster modbusMaster = new ModbusTCPMaster(ipAddress, port);
-			int[] values = new int[2];
+			byte[] values = new byte[4];
 			values[0] = 0;
-			values[1] = 1;
+			values[1] = 0;
+			values[2] = 0;
+			values[3] = 1;
 			for (int i = 0; i < 20; i++) {
 				values[1] *= 2;
 				assertTrue(modbusMaster.maskWriteRegister(i, values));

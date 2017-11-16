@@ -193,9 +193,10 @@ public class ModbusTCPTransport implements ModbusTransport {
 	 *            Полученные данные
 	 * @return Возвращает количество полученных байт, или -1, если прием
 	 *         неуспешен
+	 * @throws IOException 
 	 */
 	@Override
-	public int receiveFrame(ModbusMessage msg) {
+	public int receiveFrame(ModbusMessage msg) throws IOException {
 
 		logger.debug("ModbusTCPTransport: Прием пакета.....");
 
@@ -208,15 +209,11 @@ public class ModbusTCPTransport implements ModbusTransport {
 		// Чтение заголовка
 		count = 0;
 		while (count < HEADER_LENGTH) {
-			try {
-				recv = in.read(receive_header, count, HEADER_LENGTH - count);
-			} catch (IOException ex) {
-				logger.error("An error occurred when receiving frame", ex);
-				return -1;
-			}
+			recv = in.read(receive_header, count, HEADER_LENGTH - count);
 			if (recv == -1) {
 				// Print Message if in debug mode
 				logger.debug("ModbusTCPTransport: Поток приема закрыт, прием вернул -1");
+				return -1;
 			}
 			count += recv;
 		}
@@ -230,10 +227,10 @@ public class ModbusTCPTransport implements ModbusTransport {
 		// В Modbus TCP идентификатор транзакции не используется,
 		// и просто копируется из запроса в ответ, мы должны
 		// его скопировать для дальнейшей проверки.
-		msg.transId = (int) ((receive_header[0] << 8) + receive_header[1]);
+		msg.transId = (int) (((receive_header[0] & 0xFF) << 8) + (receive_header[1] & 0xFF));
 
 		// Проверяем идентификатор протокола
-		protocol_identifier = (short) ((receive_header[2] << 8) + receive_header[3]);
+		protocol_identifier = (short) (((receive_header[2] & 0xFF) << 8) + (receive_header[3] & 0xFF));
 		if (protocol_identifier != PROTOCOL_IDENTIFIER) {
 			logger.warn("ModbusTCPTransport: Некорректный протокол идентификатора: {}", protocol_identifier);
 			header_check = false;
@@ -255,11 +252,6 @@ public class ModbusTCPTransport implements ModbusTransport {
 		// Если заголовок с ошибками, закрываем соединение
 		if (!header_check) {
 			logger.warn("ModbusTCPTransport: Заголовок с ошибками!");
-			try {
-				socket.close();
-			} catch (Exception ex) {
-				logger.warn("An error occurred when closing socket", ex);
-			}
 			return -1;
 		}
 

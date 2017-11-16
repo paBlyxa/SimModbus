@@ -12,9 +12,9 @@ import com.we.modbus.model.ModbusMessage;
 
 public class ModbusSlave extends Modbus {
 
-	private final static Logger logger = LoggerFactory.getLogger(ModbusMaster.class);
+	private final static Logger logger = LoggerFactory.getLogger(ModbusSlave.class);
 
-	private byte modbusAddressSlave;
+	private final byte modbusAddressSlave;
 	private final int registersCount;
 	private final ModbusDataModel dataModel;
 
@@ -30,10 +30,7 @@ public class ModbusSlave extends Modbus {
 	 *            Максимальный адрес регистра
 	 */
 	public ModbusSlave(ModbusTransport transport, ModbusDataModel dataModel) {
-		super(transport);
-		this.dataModel = dataModel;
-		this.registersCount = dataModel.getRegisterCount();
-		modbusAddressSlave = 0;
+		this(transport, dataModel, (byte)0);
 	}
 
 	/**
@@ -48,7 +45,9 @@ public class ModbusSlave extends Modbus {
 	 *            Максимальный адрес регистра
 	 */
 	public ModbusSlave(ModbusTransport transport, ModbusDataModel dataModel, byte modbusAddressSlave) {
-		this(transport, dataModel);
+		super(transport);
+		this.dataModel = dataModel;
+		this.registersCount = dataModel.getRegisterCount();
 		this.modbusAddressSlave = modbusAddressSlave;
 	}
 
@@ -62,7 +61,10 @@ public class ModbusSlave extends Modbus {
 		ModbusMessage request = new ModbusMessage();
 
 		// Получаем новый запрос
-		transport.receiveFrame(request);
+		int recvCount = transport.receiveFrame(request); 
+		if (recvCount < 0){
+			return recvCount;
+		}
 
 		// Проверка адреса
 		if (modbusAddressSlave != 0 && (request.buff[0] != modbusAddressSlave)) {
@@ -114,7 +116,7 @@ public class ModbusSlave extends Modbus {
 			}
 
 			// Формируем ответ
-			ModbusMessage response = makeHead(function, 3 + values.length, request.transId);
+			ModbusMessage response = makeHead(request.buff[0], function, 3 + values.length, request.transId);
 			// Count bytes
 			response.buff[2] = (byte) values.length;
 			for (int i = 0; i < values.length; i++) {
@@ -149,7 +151,7 @@ public class ModbusSlave extends Modbus {
 			}
 
 			// Формируем ответ
-			ModbusMessage response = makeHead(function, 3 + values.length, request.transId);
+			ModbusMessage response = makeHead(request.buff[0], function, 3 + values.length, request.transId);
 			// Count bytes
 			response.buff[2] = (byte) values.length;
 			for (int i = 0; i < values.length; i++) {
@@ -260,7 +262,7 @@ public class ModbusSlave extends Modbus {
 			}
 
 			// Формируем ответ
-			ModbusMessage response = makeHead(function, 6, request.transId);
+			ModbusMessage response = makeHead(request.buff[0], function, 6, request.transId);
 			System.arraycopy(request.buff, 2, response.buff, 2, 4);
 
 			// Отправляем ответ
@@ -303,7 +305,7 @@ public class ModbusSlave extends Modbus {
 			}
 
 			// Формируем ответ
-			ModbusMessage response = makeHead(function, 6, request.transId);
+			ModbusMessage response = makeHead(request.buff[0], function, 6, request.transId);
 			System.arraycopy(request.buff, 2, response.buff, 2, 4);
 
 			// Отправляем ответ
@@ -384,6 +386,8 @@ public class ModbusSlave extends Modbus {
 	 * Функция создает новое сообщение и заполняет заголовок согласно
 	 * параметрам.
 	 * 
+	 * @param slaveAddress
+	 *            Адрес слэйва
 	 * @param function
 	 *            Код функции
 	 * @param length
@@ -392,11 +396,11 @@ public class ModbusSlave extends Modbus {
 	 *            Идентификатор транзакции, только для ModbusTCP
 	 * @return возвращает новое сообщение
 	 */
-	private ModbusMessage makeHead(Function function, int length, int transId) {
+	private ModbusMessage makeHead(byte slaveAddress, Function function, int length, int transId) {
 		ModbusMessage response = new ModbusMessage();
 		response.transId = transId;
 		response.length = length;
-		response.buff[0] = modbusAddressSlave;
+		response.buff[0] = slaveAddress;
 		response.buff[1] = function.getCode();
 		return response;
 	}

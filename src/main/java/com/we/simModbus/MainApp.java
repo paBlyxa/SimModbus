@@ -1,8 +1,11 @@
 package com.we.simModbus;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.we.simModbus.model.TagForm;
+import com.we.simModbus.service.StopThreadsHandler;
 import com.we.simModbus.view.CreateTagDialogController;
 import com.we.simModbus.view.RootLayoutController;
 
@@ -18,12 +21,13 @@ public class MainApp extends Application {
 
 	private Stage primaryStage;
 	private BorderPane rootLayout;
+	private final List<StopThreadsHandler> stopThreadsHandlers;
 	
 	/**
 	 * Конструктор
 	 */
 	public MainApp() {
-
+		stopThreadsHandlers = new ArrayList<StopThreadsHandler>();
 	}
 	
 	@Override
@@ -37,6 +41,9 @@ public class MainApp extends Application {
 	@Override
 	public void stop(){
 		// TODO stop all threads
+		for (StopThreadsHandler handler : stopThreadsHandlers){
+			handler.stop();
+		}
 	}
 	
 	/**
@@ -115,6 +122,15 @@ public class MainApp extends Application {
 		return primaryStage;
 	}
 
+	/**
+	 * Add stopThreadsHandler to list.
+	 * @param handler
+	 */
+	public void addStopThreadsHandler(StopThreadsHandler handler){
+		stopThreadsHandlers.add(handler);
+	}
+	
+	
 	public static void main(String[] args) {
 		launch(args);
 	}

@@ -86,6 +86,16 @@ public class RootLayoutController {
 	}
 
 	/**
+	 * Создает новый тэг по команде в меню.
+	 */
+	@FXML
+	private void handleNewTag(){
+		Tab tab = pane.getSelectionModel().getSelectedItem();
+		
+	}
+	
+	
+	/**
 	 * Закрывает приложение.
 	 */
 	@FXML

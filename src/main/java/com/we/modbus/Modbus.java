@@ -94,8 +94,9 @@ public class Modbus {
      * 
      * @param msg Принятое модбас сообщение
      * @return Возвращает количество принятых байт
+     * @throws IOException 
      */
-    public int receiveFrame(ModbusMessage msg){
+    public int receiveFrame(ModbusMessage msg) throws IOException{
         int result = transport.receiveFrame(msg);
     	logger.debug("Модбас: Прием данных {}", msg);
     	return result;

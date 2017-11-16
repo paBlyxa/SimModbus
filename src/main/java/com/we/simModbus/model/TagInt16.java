@@ -29,7 +29,6 @@ public class TagInt16 extends Tag{
 
 	@Override
 	public ObservableValue<Number> getValueProperty() {
-		// TODO Auto-generated method stub
 		return value;
 	}
 

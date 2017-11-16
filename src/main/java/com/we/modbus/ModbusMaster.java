@@ -46,7 +46,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean readCoilStatus(int reference, int length, int[] results)
+	public boolean readCoilStatus(int reference, int length, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(0, reference, length, 0, Function.READ_COIL_STATUS, results);
@@ -70,7 +70,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean readCoilStatus(int unitId, int reference, int length, int[] results)
+	public boolean readCoilStatus(int unitId, int reference, int length, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(unitId, reference, length, 0, Function.READ_COIL_STATUS, results);
@@ -92,7 +92,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean readDiscreteInputs(int reference, int length, int[] results)
+	public boolean readDiscreteInputs(int reference, int length, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(0, reference, length, 0, Function.READ_DISCRETE_INPUTS, results);
@@ -116,7 +116,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean readDiscreteInputs(int unitId, int reference, int length, int[] results)
+	public boolean readDiscreteInputs(int unitId, int reference, int length, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(unitId, reference, length, 0, Function.READ_DISCRETE_INPUTS, results);
@@ -139,7 +139,7 @@ public class ModbusMaster extends Modbus {
 	 *             Возникает если масив results меньше принятых данных
 	 * @throws IOException
 	 */
-	public boolean readMultipleRegisters(int reference, int length, int[] results)
+	public boolean readMultipleRegisters(int reference, int length, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(0, reference, length, 0, Function.READ_MULTIPLE_REGISTERS, results);
@@ -167,7 +167,7 @@ public class ModbusMaster extends Modbus {
 	 *             некорректные аргументы
 	 * @throws IOException
 	 */
-	public boolean readMultipleRegisters(int unitId, int reference, int length, int transId, int[] results)
+	public boolean readMultipleRegisters(int unitId, int reference, int length, int transId, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(unitId, reference, length, transId, Function.READ_MULTIPLE_REGISTERS, results);
@@ -189,7 +189,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean readInputRegisters(int reference, int length, int[] results)
+	public boolean readInputRegisters(int reference, int length, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(0, reference, length, 0, Function.READ_INPUT_REGISTERS, results);
@@ -217,7 +217,7 @@ public class ModbusMaster extends Modbus {
 	 *             некорректные аргументы
 	 * @throws IOException
 	 */
-	public boolean readInputRegisters(int unitId, int reference, int length, int transId, int[] results)
+	public boolean readInputRegisters(int unitId, int reference, int length, int transId, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		return readRegs(unitId, reference, length, transId, Function.READ_INPUT_REGISTERS, results);
@@ -238,8 +238,9 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean writeSingleRegister(int reference, int value) throws IllegalArgumentException, IOException {
-		int[] values = new int[1];
-		values[0] = value;
+		byte[] values = new byte[2];
+		values[0] = (byte) (value >> 8);
+		values[1] = (byte) value;
 		return writeRegs(0, reference, 1, 0, Function.WRITE_SINGLE_REGISTER, values);
 	}
 
@@ -263,8 +264,9 @@ public class ModbusMaster extends Modbus {
 	 */
 	public boolean writeSingleRegister(int unitId, int reference, int transId, int value)
 			throws IllegalArgumentException, IOException {
-		int[] values = new int[1];
-		values[0] = value;
+		byte[] values = new byte[2];
+		values[0] = (byte) value;
+		values[1] = (byte) (value >> 8);
 		return writeRegs(0, reference, 1, 0, Function.WRITE_SINGLE_REGISTER, values);
 	}
 
@@ -281,7 +283,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean setSingleCoil(int reference) throws IllegalArgumentException, IOException{
-		int[] values = {0xFF00};
+		byte[] values = {(byte) 0xFF, 0x00};
 		return writeRegs(0, reference, 1, 0, Function.WRITE_SINGLE_COIL, values);
 	}
 	
@@ -302,7 +304,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean setSingleCoil(int unitId, int reference, int transId) throws IllegalArgumentException, IOException{
-		int[] values = {0xFF00};
+		byte[] values = {(byte) 0xFF, 0x00};
 		return writeRegs(unitId, reference, 1, transId, Function.WRITE_SINGLE_COIL, values);
 	}	
 	
@@ -319,7 +321,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean resetSingleCoil(int reference) throws IllegalArgumentException, IOException{
-		int[] values = {0x0000};
+		byte[] values = {(byte) 0x00, 0x00};
 		return writeRegs(0, reference, 1, 0, Function.WRITE_SINGLE_COIL, values);
 	}
 	
@@ -340,7 +342,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IOException
 	 */
 	public boolean resetSingleCoil(int unitId, int reference, int transId) throws IllegalArgumentException, IOException{
-		int[] values = {0x0000};
+		byte[] values = {(byte) 0x00, 0x00};
 		return writeRegs(unitId, reference, 1, transId, Function.WRITE_SINGLE_COIL, values);
 	}	
 
@@ -360,7 +362,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean forceMultipleCoils(int reference, int length, int[] values) throws IllegalArgumentException, IOException {
+	public boolean forceMultipleCoils(int reference, int length, byte[] values) throws IllegalArgumentException, IOException {
 		return writeRegs(0, reference, length, 0, Function.WRITE_MULTIPLE_COILS, values);
 	}
 	
@@ -384,7 +386,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException
 	 * @throws IOException
 	 */
-	public boolean forceMultipleCoils(int unitId, int reference, int length, int transId, int[] values) throws IllegalArgumentException, IOException {
+	public boolean forceMultipleCoils(int unitId, int reference, int length, int transId, byte[] values) throws IllegalArgumentException, IOException {
 		return writeRegs(unitId, reference, length, transId, Function.WRITE_MULTIPLE_COILS, values);
 	}
 	
@@ -405,7 +407,7 @@ public class ModbusMaster extends Modbus {
 	 *             Возникает если некорректные аргументы
 	 * @throws IOException
 	 */
-	public boolean writeMultipleRegisters(int reference, int length, int[] values)
+	public boolean writeMultipleRegisters(int reference, int length, byte[] values)
 			throws IllegalArgumentException, IOException {
 		return writeRegs(0, reference, length, 0, Function.WRITE_MULTIPLE_REGISTERS, values);
 	}
@@ -431,7 +433,7 @@ public class ModbusMaster extends Modbus {
 	 *             Возникает если некорректные аргументы
 	 * @throws IOException
 	 */
-	public boolean writeMultipleRegisters(int unitId, int reference, int length, int transId, int[] values)
+	public boolean writeMultipleRegisters(int unitId, int reference, int length, int transId, byte[] values)
 			throws IllegalArgumentException, IOException {
 
 		return writeRegs(unitId, reference, length, transId, Function.WRITE_MULTIPLE_REGISTERS, values);
@@ -452,7 +454,7 @@ public class ModbusMaster extends Modbus {
 	 * 			Возникает если неккоректные аргументы
 	 * @throws IOException
 	 */
-	public boolean maskWriteRegister(int reference, int[] values)
+	public boolean maskWriteRegister(int reference, byte[] values)
 			throws IllegalArgumentException, IOException {
 		return writeRegs(0, reference, 1, 0, Function.MASK_WRITE_REGISTER, values);
 	}
@@ -476,7 +478,7 @@ public class ModbusMaster extends Modbus {
 	 * 			Возникает если неккоректные аргументы
 	 * @throws IOException
 	 */
-	public boolean maskWriteRegister(int unitId, int reference, int transId, int[] values)
+	public boolean maskWriteRegister(int unitId, int reference, int transId, byte[] values)
 			throws IllegalArgumentException, IOException {
 		return writeRegs(unitId, reference, 1, transId, Function.MASK_WRITE_REGISTER, values);
 	}
@@ -503,7 +505,7 @@ public class ModbusMaster extends Modbus {
 	 * @throws IllegalArgumentException,
 	 *             IOException
 	 */
-	private boolean writeRegs(int unitId, int reference, int length, int transId, Function function, int[] values)
+	private boolean writeRegs(int unitId, int reference, int length, int transId, Function function, byte[] values)
 			throws IllegalArgumentException, IOException {
 
 		// Проверяем аргументы
@@ -527,8 +529,8 @@ public class ModbusMaster extends Modbus {
 
 			// Устанавливаем данные для записи
 			for (int i = 0; i < length; i++) {
-				request.buff[7 + 2 * i] = (byte) (values[i] >> 8);
-				request.buff[8 + 2 * i] = (byte) (values[i]);
+				request.buff[7 + 2 * i] = values[2 * i];
+				request.buff[8 + 2 * i] = values[2 * i + 1];
 			}
 
 			// Длина запроса
@@ -541,7 +543,7 @@ public class ModbusMaster extends Modbus {
 			
 			// Устанавливаем данные для записи
 			for (int i = 0; i < ((length + 7) / 8); i++) {
-				request.buff[7 + i] = (byte) (values[i / 2] >> (i % 2 == 0 ? 8 : 0));
+				request.buff[7 + i] = values[i];
 			}
 			
 			// Длина запроса
@@ -549,18 +551,18 @@ public class ModbusMaster extends Modbus {
 			
 		} else if (function == Function.MASK_WRITE_REGISTER) {
 			// Устанавливаем данные для записи
-			request.buff[4] = (byte) (values[0] >> 8);
-			request.buff[5] = (byte) (values[0]);
-			request.buff[6] = (byte) (values[1] >> 8);
-			request.buff[7] = (byte) (values[1]);
+			request.buff[4] = (byte) values[0];
+			request.buff[5] = (byte) values[1];
+			request.buff[6] = (byte) values[2];
+			request.buff[7] = (byte) values[3];
 			
 			// Длина запроса
 			request.length = 8;
 		} else {
 			
 			// Устанавливаем данные для записи
-			request.buff[4] = (byte) (values[0] >> 8);
-			request.buff[5] = (byte) (values[0]);
+			request.buff[4] = (byte) values[0];
+			request.buff[5] = (byte) values[1];
 
 			// Длина запроса
 			request.length = 6;
@@ -628,8 +630,8 @@ public class ModbusMaster extends Modbus {
 			}
 		} else if (function == Function.MASK_WRITE_REGISTER){
 			// Проверяем полученное значение, должно быть то же, что отправляли
-			if (((((response.buff[4] << 8) + response.buff[5]) & 0xFFFF) != values[0]) &&
-					((((response.buff[6] << 8) + response.buff[7]) & 0xFFFF) != values[1])) {
+			if ((response.buff[4] != values[0]) || (response.buff[5] != values[1]) ||
+					(response.buff[6] != values[2]) || (response.buff[7] != values[3])) {
 				logger.warn("ModbusMaster: Incorrect return value [{}, {}]",
 						((response.buff[4] << 8) + (response.buff[5]) & 0xFFFF),
 						((response.buff[6] << 8) + (response.buff[7]) & 0xFFFF));
@@ -637,7 +639,7 @@ public class ModbusMaster extends Modbus {
 			}
 		} else {
 			// Проверяем полученное значение, должно быть то же, что отправляли
-			if ((((response.buff[4] << 8) + response.buff[5]) & 0xFFFF) != values[0]) {
+			if ((response.buff[4] != values[0]) || (response.buff[5] != values[1])) {
 				logger.warn("ModbusMaster: Incorrect return value [{}]",
 						((response.buff[4] << 8) + (response.buff[5]) & 0xFFFF));
 				return false;
@@ -746,7 +748,7 @@ public class ModbusMaster extends Modbus {
 	 *             некорректные аргументы
 	 * @throws IOException
 	 */
-	private boolean readRegs(int unitId, int reference, int length, int transId, Function function, int[] results)
+	private boolean readRegs(int unitId, int reference, int length, int transId, Function function, byte[] results)
 			throws IllegalArgumentException, IOException {
 
 		// Проверяем входные аргументы
@@ -811,13 +813,11 @@ public class ModbusMaster extends Modbus {
 		if (function == Function.READ_COIL_STATUS || function == Function.READ_DISCRETE_INPUTS) {
 			// Копируем полученные данные в result
 			for (int i = 0; i < (length + 7) / 8; i++) {
-				results[i / 2] += (response.buff[3 + i] & 0xFF) << (i % 2 == 0 ? 8 : 0);
+				results[i] = response.buff[3 + i];
 			}
 		} else {
 			// Копируем полученные данные в result
-			for (int i = 0; i < length; i++) {
-				results[i] = ((response.buff[3 + 2 * i] & 0xFF) << 8) + (response.buff[4 + 2 * i] & 0xFF);
-			}
+			System.arraycopy(response.buff, 3, results, 0, length*2);
 		}
 		return true;
 	}

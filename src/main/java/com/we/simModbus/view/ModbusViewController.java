@@ -1,6 +1,9 @@
 package com.we.simModbus.view;
 
-import com.we.modbus.model.ModbusDataModel;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.we.simModbus.MainApp;
 import com.we.simModbus.model.Tag;
 import com.we.simModbus.model.TagBool;
@@ -9,12 +12,15 @@ import com.we.simModbus.model.TagForm;
 import com.we.simModbus.model.TagInt16;
 import com.we.simModbus.model.TagInt32;
 import com.we.simModbus.model.Type;
+import com.we.simModbus.service.StopThreadsHandler;
 import com.we.simModbus.service.TagDataModel;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -31,7 +37,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 
-public abstract class ModbusViewController {
+public abstract class ModbusViewController implements StopThreadsHandler {
 
 	@FXML
 	private TableView<Tag> registerTable;
@@ -46,6 +52,8 @@ public abstract class ModbusViewController {
 	@FXML
 	private TextField port;
 	@FXML
+	private TextField slaveAddress;
+	@FXML
 	private Label status;
 	@FXML
 	private Button butConnect;
@@ -57,11 +65,13 @@ public abstract class ModbusViewController {
 
 	protected final BooleanProperty isConnected;
 	private final TagDataModel dataModel;
+	private final ExecutorService executor;
 	
 	public ModbusViewController() {
+		executor = Executors.newFixedThreadPool(2);
 		isConnected = new SimpleBooleanProperty(false);
 
-		dataModel = new TagDataModel(100);
+		dataModel = new TagDataModel(20000);
 	}
 
 	/**
@@ -79,6 +89,7 @@ public abstract class ModbusViewController {
 		
 		status.setText("");
 		port.setText("502");
+		slaveAddress.setText("1");
 		registerTable.setEditable(true);
 		registerTable.setRowFactory(new Callback<TableView<Tag>, TableRow<Tag>>() {
 			@Override
@@ -122,18 +133,22 @@ public abstract class ModbusViewController {
 				case BOOL:
 					tag = new TagBool();
 					tag.setValue(Integer.parseInt(tagForm.getValue()));
+					tag.setAddress(tagForm.getAddress() + i);
 					break;
 				case DINT:
 					tag = new TagInt32();
 					tag.setValue(Integer.parseInt(tagForm.getValue()));
+					tag.setAddress(tagForm.getAddress() + (i << 1));
 					break;
 				case FLOAT:
 					tag = new TagFloat();
 					tag.setValue(Float.parseFloat(tagForm.getValue()));
+					tag.setAddress(tagForm.getAddress() + (i << 1));
 					break;
 				case INT:
 					tag = new TagInt16();
 					tag.setValue(Integer.parseInt(tagForm.getValue()));
+					tag.setAddress(tagForm.getAddress() + i);
 					break;
 				default:
 					break;
@@ -146,7 +161,6 @@ public abstract class ModbusViewController {
 					tag.setName(tagForm.getName());
 				}
 				tag.setType(tagForm.getType());
-				tag.setAddress(tagForm.getAddress() + i);
 				dataModel.addTag(tag);
 			}
 		}
@@ -204,6 +218,7 @@ public abstract class ModbusViewController {
 	 */
 	public void setMainApp(MainApp mainAp) {
 		this.mainApp = mainAp;
+		mainApp.addStopThreadsHandler(this);
 	}
 
 	/**
@@ -213,6 +228,15 @@ public abstract class ModbusViewController {
 	 */
 	public String getPort() {
 		return port.getText();
+	}
+
+	/**
+	 * Возвращает Modbus адрес.
+	 * 
+	 * @return
+	 */
+	public String getSlaveAddress() {
+		return slaveAddress.getText();
 	}
 
 	/**
@@ -273,11 +297,13 @@ public abstract class ModbusViewController {
 			butConnect.setText("Отключение");
 			butConnect.setOnAction((actionEvent) -> handleDisconnect());
 			port.setEditable(false);
+			slaveAddress.setEditable(false);
 		} else {
 			isConnected.set(false);
 			butConnect.setText("Подключение");
 			butConnect.setOnAction((event) -> handleConnect());
 			port.setEditable(true);
+			slaveAddress.setEditable(true);
 		}
 	}
 
@@ -314,5 +340,32 @@ public abstract class ModbusViewController {
 	 * Должен быть реализован в классе наследнике.
 	 */
 	public void initializeChild(){
+	}
+	
+	/**
+	 * Метод для выполнения задачи в другом потоке.
+	 * Используется ExecutorService.
+	 */
+	void submit(Task<Void> task){
+		// Use the executor service to schedule the task
+		executor.submit(task);
+	}
+	
+	/**
+	 * Метод для выполнения задачи в другом потоке.
+	 * Используется ExecutorService.
+	 */
+	void submit(Service<Void> service){
+		// Use the executor service to schedule the task
+		service.start();
+	}	
+	
+	Executor getExecutor(){
+		return executor;
+	}
+	
+	@Override
+	public void stop(){
+		executor.shutdownNow();
 	}
 }

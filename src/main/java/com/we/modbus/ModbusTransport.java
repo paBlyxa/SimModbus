@@ -31,8 +31,9 @@ public interface ModbusTransport {
      * 
      * @param msg Принятое модбас сообщение
      * @return Возвращает количество принятых байт
+     * @throws IOException 
      */
-    public int receiveFrame(ModbusMessage msg);
+    public int receiveFrame(ModbusMessage msg) throws IOException;
     
     /**
      * Метод для закрытия соединения.

@@ -92,6 +92,7 @@ public class TagDataModel implements ModbusDataModel {
 				values[i * 2 + 1] = (byte) (data.get(reference + i));
 			}
 		}
+		logger.debug("Read from model - reference {}, length {}, values {}", reference, length, values);
 		return values;
 	}
 
@@ -111,6 +112,7 @@ public class TagDataModel implements ModbusDataModel {
 	 */
 	@Override
 	public boolean write(int reference, int length, DataModelTable table, byte[] values) {
+		logger.debug("Write to model - reference {}, length {}, values {}", reference, length, values);
 		if (table == DataModelTable.Coils || table == DataModelTable.DiscretesInput) {
 			// Запись по битам
 			for (int i = 0; i < length; i++) {
@@ -129,7 +131,9 @@ public class TagDataModel implements ModbusDataModel {
 		} else {
 			// Запись по регистрам
 			for (int i = 0; i < length; i++) {
-				data.set(reference + i, (values[i * 2] & 0xFF << 8) + (values[i * 2 + 1] & 0xFF));
+				int value = (((int)values[i * 2] & 0xFF) << 8) + ((int)values[i * 2 + 1] & 0xFF);
+				logger.debug("Write to model register reference: {}, value: {}", reference + i, value);
+				data.set(reference + i, value);
 			}
 			updateTags(reference, length);
 		}
@@ -153,7 +157,9 @@ public class TagDataModel implements ModbusDataModel {
 	 */
 	private void updateTags(int readReference, int readLength) {
 		if (readReference > 0){
+			// Для того чтобы обновились тэги, которые занимают больше одного регистра
 			readReference--;
+			readLength++;
 		}
 		for (int ref = readReference; ref < (readReference + readLength); ref++) {
 			List<Tag> tagList = tagMap.get(ref);
@@ -166,12 +172,12 @@ public class TagDataModel implements ModbusDataModel {
 					case BOOL:
 						break;
 					case DINT:
-						tag.setValue(((data.get(tag.getAddress()) & 0xFFFF) << 16)
-								+ (data.get(tag.getAddress() + 1) & 0xFFFF));
+						tag.setValue(((data.get(tag.getAddress() + 1) & 0xFFFF) << 16)
+								+ (data.get(tag.getAddress()) & 0xFFFF));
 						break;
 					case FLOAT:
-						tag.setValue(Float.intBitsToFloat(((data.get(tag.getAddress()) & 0xFFFF) << 16)
-								+ (data.get(tag.getAddress() + 1) & 0xFFFF)));
+						tag.setValue(Float.intBitsToFloat(((data.get(tag.getAddress() + 1) & 0xFFFF) << 16)
+								+ (data.get(tag.getAddress()) & 0xFFFF)));
 						break;
 					default:
 						break;
@@ -179,6 +185,7 @@ public class TagDataModel implements ModbusDataModel {
 				}
 			}
 		}
+		logger.debug("Update tags from model - reference {}, length {}", readReference, readLength);
 	}
 
 	/**
@@ -272,12 +279,12 @@ public class TagDataModel implements ModbusDataModel {
 			data.set(tag.getAddress(), (int) tag.getValue());
 			break;
 		case DINT:
-			data.set(tag.getAddress() + 1, (int) tag.getValue() & 0xFFFF);
-			data.set(tag.getAddress(), ((int) tag.getValue() >> 16) & 0xFFFF);			
+			data.set(tag.getAddress(), (int) tag.getValue() & 0xFFFF);
+			data.set(tag.getAddress() + 1, ((int) tag.getValue() >> 16) & 0xFFFF);			
 			break;
 		case FLOAT:
-			data.set(tag.getAddress() + 1, Float.floatToIntBits(tag.getValue().floatValue()) & 0xFFFF);
-			data.set(tag.getAddress(), (Float.floatToIntBits(tag.getValue().floatValue()) >> 16) & 0xFFFF);
+			data.set(tag.getAddress(), Float.floatToIntBits(tag.getValue().floatValue()) & 0xFFFF);
+			data.set(tag.getAddress() + 1, (Float.floatToIntBits(tag.getValue().floatValue()) >> 16) & 0xFFFF);
 			break;
 		}
 		// Так как возможно к одной части памяти подключить несколько переменных, то нужно обновить их значения.

@@ -37,6 +37,8 @@
    <top>
       <HBox alignment="CENTER_LEFT" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
+            <Label text="Modbus адрес" />
+            <TextField fx:id="slaveAddress" prefWidth="50.0" promptText="Адрес" />
             <Label layoutX="143.0" layoutY="15.0" text="порт" />
             <TextField fx:id="port" prefWidth="50.0" promptText="Порт" />
             <Label layoutX="219.0" layoutY="15.0" text="количество регистров" />

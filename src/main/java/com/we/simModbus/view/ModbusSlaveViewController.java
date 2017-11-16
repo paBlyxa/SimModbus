@@ -1,20 +1,15 @@
 package com.we.simModbus.view;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.we.modbus.ModbusTCPServer;
-import com.we.modbus.model.ModbusDataModel;
 import com.we.modbus.tcp.StatusListener;
 import com.we.simModbus.model.Tag;
-import com.we.simModbus.service.ChangeTagService;
-import com.we.simModbus.service.TagChangeHandler;
-import com.we.simModbus.service.TagDataModel;
+import com.we.simModbus.service.TagScheduleService;
+import com.we.simModbus.service.TagScheduleServiceThreadFactory;
+import com.we.simModbus.service.TagScheduleServiceThread;
+import com.we.simModbus.service.ChangeTagScheduleServiceThread;
 import com.we.simModbus.service.TagDeleteHandler;
 
 import javafx.concurrent.Task;
@@ -23,23 +18,26 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TextField;
 
-public class ModbusSlaveViewController extends ModbusViewController implements TagChangeHandler, TagDeleteHandler {
+public class ModbusSlaveViewController extends ModbusViewController implements TagDeleteHandler {
 
-	private final static Logger logger = LoggerFactory.getLogger(ModbusMasterViewController.class);
+	private final static Logger logger = LoggerFactory.getLogger(ModbusSlaveViewController.class);
 
 	@FXML
 	private TextField regCount;
 	
 	private Task<Void> taskConnect;
-	private final ExecutorService executor;
-	private final ScheduledExecutorService schExService;
+	
 	private ModbusTCPServer modbusTCPServer;
-	private ChangeTagService[] changeTagService;
+	private final TagScheduleService changeTagService;
 	
 	public ModbusSlaveViewController() {
-		executor = Executors.newSingleThreadExecutor();
-		schExService = Executors.newScheduledThreadPool(1);
-		changeTagService = new ChangeTagService[3];
+		changeTagService = new TagScheduleService();
+		changeTagService.setTagScheduleServiceThreadFactory(new TagScheduleServiceThreadFactory(){
+			@Override
+			public TagScheduleServiceThread newInstance(){
+				return new ChangeTagScheduleServiceThread(getDataModel(), getExecutor());
+			}
+		});
 	}
 	
 	/**
@@ -48,7 +46,7 @@ public class ModbusSlaveViewController extends ModbusViewController implements T
 	 */
 	@Override
 	public void initializeChild() {
-		regCount.setText("100");
+		regCount.setText("1000");
 	}
 	
 	/**
@@ -68,6 +66,11 @@ public class ModbusSlaveViewController extends ModbusViewController implements T
 			setStatus("Введите количество регистров");
 			return;
 		}
+		String slaveAddress = getSlaveAddress();
+		if (slaveAddress == null || slaveAddress.isEmpty()) {
+			setStatus("Введите Modbus адрес");
+			return;
+		}
 		
 		// Запрещаем изменение номера порта и количества регистров
 		setEditable(false);
@@ -78,7 +81,7 @@ public class ModbusSlaveViewController extends ModbusViewController implements T
 		taskConnect = new Task<Void>() {
 			@Override
 			public Void call(){
-				modbusTCPServer = new ModbusTCPServer(Integer.parseInt(strPort), 3, getDataModel(),
+				modbusTCPServer = new ModbusTCPServer(Byte.parseByte(slaveAddress), Integer.parseInt(strPort), 3, getDataModel(),
 						new StatusListener() {
 					@Override
 					public void updateStatus(String status){
@@ -101,66 +104,45 @@ public class ModbusSlaveViewController extends ModbusViewController implements T
 			setConnected(false);
 			regCount.setEditable(true);
 		});
-		// Use the executor service to schedule the task
-		executor.submit(taskConnect);
+
+		submit(taskConnect);
 	}
 
 	/**
-	 * Действие когда нажали кнопку "Отключени"
+	 * Действие когда нажали кнопку "Отключение"
 	 */
 	@Override
 	public void disconnect() {
-		modbusTCPServer.stop();
-		unbindStatus();
-		taskConnect.cancel();
+		if (modbusTCPServer != null){
+			modbusTCPServer.stop();
+			unbindStatus();
+		}
+		if (taskConnect != null && taskConnect.isRunning()){
+			taskConnect.cancel();
+		}
 		setConnected(false);
 		regCount.setEditable(true);
 		taskConnect = null;
 	}
 
+	/**
+	 * Метод для создания контекстного меню на строке
+	 * тэга в таблице.
+	 */
 	@Override
 	public ContextMenu getRowContextMenu(TableRow<Tag> row) {
 		logger.debug("Get context menu");
-		return ContextMenuFactory.getContextMenuSlave(this, this, row);
+		return ContextMenuFactory.getContextMenuSlave(changeTagService, this, row);
 	}
-
+	
+	/**
+	 * Stop all threads.
+	 */
 	@Override
-	public void addToCyclicChange(Tag tag, long delay, TimeUnit unit) {
-		if (unit == TimeUnit.MILLISECONDS && delay == 500){
-			if (changeTagService[0] == null){
-				changeTagService[0] = new ChangeTagService(getDataModel());
-				schExService.scheduleWithFixedDelay(changeTagService[0], delay, delay, unit);
-			}
-			changeTagService[0].add(tag);
-		}
-		
+	public void stop(){
+		logger.debug("Stop threads");
+		changeTagService.stop();
+		disconnect();
+		super.stop();
 	}
-
-	@Override
-	public void removeFromCyclicChange(Tag tag) {
-		for (ChangeTagService changeService : changeTagService){
-			if (changeService != null){
-				if (changeService.remove(tag)){
-					if (changeService.size() < 1){
-						changeService = null;
-					}
-					break;
-				}
-			}
-		}
-		
-	}
-
-	@Override
-	public boolean isInCyclicChange(Tag tag) {
-		for (ChangeTagService changeService : changeTagService){
-			if (changeService != null){
-				if (changeService.contains(tag)){
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 }
