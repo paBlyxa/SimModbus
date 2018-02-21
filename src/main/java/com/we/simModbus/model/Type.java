@@ -2,16 +2,19 @@ package com.we.simModbus.model;
 
 public enum Type {
 
-	BOOL("BOOL", 1) {
+	BOOL("Bool", 1) {
 		public Class<?> getType() { return Boolean.class; }
 	},
-	INT("INT", 2) {
+	INT("Int", 2) {
 		public Class<?> getType() {return Short.class; }
 	},
-	DINT("DINT", 4) {
+	DINT("Dint", 4) {
 		public Class<?> getType() {return Integer.class; }
 	},
-	FLOAT("FLOAT", 4) {
+	FLOAT("Float", 4) {
+		public Class<?> getType() { return Float.class; }
+	},
+	FLOATINV("Float Inverse", 4) {
 		public Class<?> getType() { return Float.class; }
 	};
 	

@@ -4,16 +4,21 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.we.simModbus.MainApp;
 import com.we.simModbus.model.Tag;
 import com.we.simModbus.model.TagBool;
 import com.we.simModbus.model.TagFloat;
+import com.we.simModbus.model.TagFloatInv;
 import com.we.simModbus.model.TagForm;
 import com.we.simModbus.model.TagInt16;
 import com.we.simModbus.model.TagInt32;
 import com.we.simModbus.model.Type;
 import com.we.simModbus.service.StopThreadsHandler;
 import com.we.simModbus.service.TagDataModel;
+import com.we.simModbus.service.TagAddDeleteHandler;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,6 +32,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -37,8 +43,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 
-public abstract class ModbusViewController implements StopThreadsHandler {
+public abstract class ModbusViewController implements StopThreadsHandler, TagAddDeleteHandler {
 
+	private final static Logger logger = LoggerFactory.getLogger(ModbusViewController.class);
+	
 	@FXML
 	private TableView<Tag> registerTable;
 	@FXML
@@ -59,7 +67,9 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 	private Button butConnect;
 	@FXML
 	private BorderPane pane;
-
+	@FXML
+	private MenuItem openMenuItem;
+	
 	// Ссылка на главное приложение
 	private MainApp mainApp;
 
@@ -88,7 +98,6 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 		valueColumn.setCellFactory(col -> new IntegerEditingCell(dataModel));
 		
 		status.setText("");
-		port.setText("502");
 		slaveAddress.setText("1");
 		registerTable.setEditable(true);
 		registerTable.setRowFactory(new Callback<TableView<Tag>, TableRow<Tag>>() {
@@ -117,7 +126,7 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 	 * Метод вызывается при добавлении новой переменной.
 	 */
 	@FXML
-	private void handleNewTag() {
+	public void handleNewTag() {
 		TagForm tagForm = new TagForm();
 		tagForm.setType(Type.INT);
 		tagForm.setValue("0");
@@ -133,22 +142,27 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 				case BOOL:
 					tag = new TagBool();
 					tag.setValue(Integer.parseInt(tagForm.getValue()));
-					tag.setAddress(tagForm.getAddress() + i);
+					tag.setAddress(tagForm.getAddress() + i + i * tagForm.getOffset());
 					break;
 				case DINT:
 					tag = new TagInt32();
 					tag.setValue(Integer.parseInt(tagForm.getValue()));
-					tag.setAddress(tagForm.getAddress() + (i << 1));
+					tag.setAddress(tagForm.getAddress() + (i << 1) + i * tagForm.getOffset());
 					break;
 				case FLOAT:
 					tag = new TagFloat();
 					tag.setValue(Float.parseFloat(tagForm.getValue()));
-					tag.setAddress(tagForm.getAddress() + (i << 1));
+					tag.setAddress(tagForm.getAddress() + (i << 1) + i * tagForm.getOffset());
+					break;
+				case FLOATINV:
+					tag = new TagFloatInv();
+					tag.setValue(Float.parseFloat(tagForm.getValue()));
+					tag.setAddress(tagForm.getAddress() + (i << 1) + i * tagForm.getOffset());
 					break;
 				case INT:
 					tag = new TagInt16();
 					tag.setValue(Integer.parseInt(tagForm.getValue()));
-					tag.setAddress(tagForm.getAddress() + i);
+					tag.setAddress(tagForm.getAddress() + i + i * tagForm.getOffset());
 					break;
 				default:
 					break;
@@ -170,11 +184,11 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 	 * Метод вызывается при удалении переменной.
 	 */
 	@FXML
-	private void handleDelete() {
+	public void handleDeleteTag() {
 		int selectedIndex = registerTable.getSelectionModel().getSelectedIndex();
 		if (selectedIndex >= 0) {
 			Tag tag = registerTable.getItems().remove(selectedIndex);
-			delete(tag);
+			deleteTag(tag);
 		} else {
 			// Ничего не выбрано.
 			Alert alert = new Alert(AlertType.WARNING);
@@ -187,11 +201,28 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 		}
 	}
 	
+
+	/**
+	 * Открывает FileChooser, чтобы пользователь имел возможность
+	 * выбрать файл для загрузки.
+	 */
+	void handleOpen(){
+		
+	}
+	
+	/**
+	 * Метод для добавления переменной.
+	 * @param tag
+	 */
+	public void addTag(Tag tag){
+		dataModel.addTag(tag);
+	}
+	
 	/**
 	 * Метод для удаления переменной.
 	 * @param tag
 	 */
-	public void delete(Tag tag){
+	public void deleteTag(Tag tag){
 		dataModel.deleteTag(tag);
 	}
 	
@@ -366,6 +397,11 @@ public abstract class ModbusViewController implements StopThreadsHandler {
 	
 	@Override
 	public void stop(){
+		logger.debug("Stop execution of tasks");
 		executor.shutdownNow();
+	}
+	
+	public void setPort(String port){
+		this.port.setText(port);
 	}
 }

@@ -1,9 +1,13 @@
 package com.we.simModbus.model;
 
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 
+@XmlType(name = "Int16Type")
 public class TagInt16 extends Tag{
 
 	private IntegerProperty value;
@@ -18,6 +22,7 @@ public class TagInt16 extends Tag{
 	}
 
 	@Override
+	@XmlTransient
 	public Number getValue() {
 		return value.getValue();
 	}
@@ -28,6 +33,7 @@ public class TagInt16 extends Tag{
 	}
 
 	@Override
+	@XmlTransient
 	public ObservableValue<Number> getValueProperty() {
 		return value;
 	}

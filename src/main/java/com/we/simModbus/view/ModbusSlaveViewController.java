@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import com.we.modbus.ModbusTCPServer;
 import com.we.modbus.tcp.StatusListener;
+import com.we.simModbus.model.ModbusWrapper;
 import com.we.simModbus.model.Tag;
 import com.we.simModbus.service.TagScheduleService;
 import com.we.simModbus.service.TagScheduleServiceThreadFactory;
 import com.we.simModbus.service.TagScheduleServiceThread;
 import com.we.simModbus.service.ChangeTagScheduleServiceThread;
-import com.we.simModbus.service.TagDeleteHandler;
 
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -18,7 +18,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TextField;
 
-public class ModbusSlaveViewController extends ModbusViewController implements TagDeleteHandler {
+public class ModbusSlaveViewController extends ModbusViewController{
 
 	private final static Logger logger = LoggerFactory.getLogger(ModbusSlaveViewController.class);
 
@@ -144,5 +144,15 @@ public class ModbusSlaveViewController extends ModbusViewController implements T
 		changeTagService.stop();
 		disconnect();
 		super.stop();
+	}
+
+
+	@Override
+	public ModbusWrapper getWrapper() {
+		ModbusWrapper wrapper = new ModbusWrapper();
+		wrapper.setMaster(false);
+		wrapper.setPort(getPort());
+		wrapper.setTags(getTagList());
+		return wrapper;
 	}
 }

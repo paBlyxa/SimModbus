@@ -1,9 +1,13 @@
 package com.we.simModbus.model;
 
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.value.ObservableValue;
 
+@XmlType(name = "FloatType")
 public class TagFloat extends Tag {
 	
 	private FloatProperty value;
@@ -18,6 +22,7 @@ public class TagFloat extends Tag {
 	}
 
 	@Override
+	@XmlTransient
 	public Number getValue() {
 		return value.getValue();
 	}
@@ -32,6 +37,7 @@ public class TagFloat extends Tag {
 	}
 
 	@Override
+	@XmlTransient
 	public ObservableValue<Number> getValueProperty() {
 		return value;
 	}

@@ -76,7 +76,7 @@ public class IntegerEditingCell extends TableCell<Tag, Number> {
 	public void  commitEdit(Number value){
 		super.commitEdit(value);
 		Tag tag = (Tag)this.getTableRow().getItem();
-		if (tag.getType() == Type.FLOAT){
+		if ((tag.getType() == Type.FLOAT) || (tag.getType() == Type.FLOATINV)){
 			tag.setValue(value.floatValue());
 		} else {
 			tag.setValue(value.intValue());

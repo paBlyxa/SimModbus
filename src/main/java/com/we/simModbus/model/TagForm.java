@@ -14,6 +14,7 @@ public class TagForm {
 	private IntegerProperty address;
 	private StringProperty value;
 	private IntegerProperty count;
+	private IntegerProperty offset;
 	
 	public TagForm() {
 		name = new SimpleStringProperty();
@@ -21,6 +22,7 @@ public class TagForm {
 		address = new SimpleIntegerProperty();
 		value = new SimpleStringProperty();
 		count = new SimpleIntegerProperty();
+		offset = new SimpleIntegerProperty();
 	}
 
 	public String getName() {
@@ -81,5 +83,17 @@ public class TagForm {
 
 	public void setCount(int count) {
 		this.count.set(count);
+	}
+
+	public int getOffset() {
+		return offset.get();
+	}
+	
+	public IntegerProperty getOffsetProperty() {
+		return offset;
+	}
+
+	public void setOffset(int offset) {
+		this.offset.set(offset);
 	}
 }

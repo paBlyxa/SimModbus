@@ -1,12 +1,12 @@
 package com.we.simModbus.view;
 
 import com.we.modbus.ModbusTCPMaster;
+import com.we.simModbus.model.ModbusWrapper;
 import com.we.simModbus.model.Tag;
 import com.we.simModbus.service.MasterTask;
 import com.we.simModbus.service.ReadMultipleRegsScheduleService;
 import com.we.simModbus.service.ReadMultipleRegsService;
 import com.we.simModbus.service.TagScheduleService;
-import com.we.simModbus.service.TagDeleteHandler;
 import com.we.simModbus.service.TagRWHandler;
 import com.we.simModbus.service.TagScheduleServiceThread;
 import com.we.simModbus.service.TagScheduleServiceThreadFactory;
@@ -27,7 +27,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ModbusMasterViewController extends ModbusViewController implements TagRWHandler, TagDeleteHandler {
+public class ModbusMasterViewController extends ModbusViewController implements TagRWHandler {
 
 	private final static Logger logger = LoggerFactory.getLogger(ModbusMasterViewController.class);
 
@@ -150,6 +150,8 @@ public class ModbusMasterViewController extends ModbusViewController implements 
 			masterService = null;
 			readService = null;
 			setLeft(null);
+			setEditable(true);
+			ipAddress.setEditable(true);
 		}
 	}
 
@@ -206,6 +208,9 @@ public class ModbusMasterViewController extends ModbusViewController implements 
 	@Override
 	public void stop() {
 		logger.debug("Stop threads");
+		if (modbusTCPMaster != null){
+			disconnect();
+		}
 		scheduledTagService.stop();
 		if (masterService != null && masterService.isRunning()) {
 			masterService.cancel();
@@ -214,6 +219,20 @@ public class ModbusMasterViewController extends ModbusViewController implements 
 			readService.cancel();
 		}
 		super.stop();
+	}
+
+	@Override
+	public ModbusWrapper getWrapper() {
+		ModbusWrapper wrapper = new ModbusWrapper();
+		wrapper.setMaster(true);
+		wrapper.setAddress(ipAddress.getText());
+		wrapper.setPort(getPort());
+		wrapper.setTags(getTagList());
+		return wrapper;
+	}
+	
+	public void setIpAddress(String ipAddress){
+		this.ipAddress.setText(ipAddress);
 	}
 
 }

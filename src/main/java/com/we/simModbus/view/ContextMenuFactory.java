@@ -3,7 +3,7 @@ package com.we.simModbus.view;
 import com.we.simModbus.model.Tag;
 import com.we.simModbus.service.TagScheduledHandler;
 import com.we.simModbus.model.TimeCyclic;
-import com.we.simModbus.service.TagDeleteHandler;
+import com.we.simModbus.service.TagAddDeleteHandler;
 import com.we.simModbus.service.TagRWHandler;
 
 import javafx.beans.binding.Bindings;
@@ -16,18 +16,18 @@ import javafx.scene.input.KeyCombination;
 
 public class ContextMenuFactory {
 
-	public static ContextMenu getContextMenuMaster(TagRWHandler tagRWHandler, TagScheduledHandler tagScheduledHandler, TagDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow,
+	public static ContextMenu getContextMenuMaster(TagRWHandler tagRWHandler, TagScheduledHandler tagScheduledHandler, TagAddDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow,
 			BooleanProperty isConnected) {
 		return new ContextMenuMaster(tagRWHandler, tagScheduledHandler, tagDeleteHandler, tableRow, isConnected);
 	}
 
-	public static ContextMenu getContextMenuSlave(TagScheduledHandler tagScheduledHandler, TagDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow) {
+	public static ContextMenu getContextMenuSlave(TagScheduledHandler tagScheduledHandler, TagAddDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow) {
 		return new ContextMenuSlave(tagScheduledHandler, tagDeleteHandler, tableRow);
 	}
 
 	static class ContextMenuMaster extends ContextMenu {
 
-		ContextMenuMaster(TagRWHandler tagHandler, TagScheduledHandler tagScheduledHandler, TagDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow, BooleanProperty isConnected) {
+		ContextMenuMaster(TagRWHandler tagHandler, TagScheduledHandler tagScheduledHandler, TagAddDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow, BooleanProperty isConnected) {
 
 			MenuItem readOnceItem = new MenuItem("Read once");
 			readOnceItem.setAccelerator(KeyCombination.keyCombination("Ctrl+R"));
@@ -64,7 +64,7 @@ public class ContextMenuFactory {
 
 			MenuItem deleteItem = new MenuItem("Delete");
 			deleteItem.setAccelerator(KeyCombination.keyCombination("DELETE"));
-			deleteItem.setOnAction((value) -> tagDeleteHandler.delete(tableRow.getItem()));
+			deleteItem.setOnAction((value) -> tagDeleteHandler.deleteTag(tableRow.getItem()));
 
 			this.getItems().addAll(readOnceItem, writeOnceItem, cyclicReadItem500ms, cyclicReadItem1s, cyclicReadItem5s,
 					removeFormCyclicReadItem, separatorMenuItem, deleteItem);
@@ -79,7 +79,7 @@ public class ContextMenuFactory {
 	}
 
 	static class ContextMenuSlave extends ContextMenu {
-		ContextMenuSlave(TagScheduledHandler tagScheduledHandler, TagDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow) {
+		ContextMenuSlave(TagScheduledHandler tagScheduledHandler, TagAddDeleteHandler tagDeleteHandler, TableRow<Tag> tableRow) {
 			
 			MenuItem addItemToCyclicChange500ms = new MenuItem("Add to cyclic change 0.5 s");
 			addItemToCyclicChange500ms.setOnAction((event) -> {
@@ -115,7 +115,7 @@ public class ContextMenuFactory {
 
 			MenuItem deleteItem = new MenuItem("Delete");
 			deleteItem.setAccelerator(KeyCombination.keyCombination("Delete"));
-			deleteItem.setOnAction((value) ->  tagDeleteHandler.delete(tableRow.getItem()));
+			deleteItem.setOnAction((value) ->  tagDeleteHandler.deleteTag(tableRow.getItem()));
 
 			this.getItems().addAll(addItemToCyclicChange500ms, addItemToCyclicChange1s, addItemToCyclicChange5s,
 					addItemToChangeByRequest, removeItemFromCyclicChange, separatorMenuItem, deleteItem);

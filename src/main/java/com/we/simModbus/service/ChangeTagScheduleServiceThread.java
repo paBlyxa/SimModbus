@@ -111,6 +111,11 @@ public class ChangeTagScheduleServiceThread extends TagScheduleServiceThread {
 					case INT:
 						tag.setValue((int) tag.getValue() + 1);
 						break;
+					case FLOATINV:
+						tag.setValue((float) tag.getValue() + 1);
+						break;
+					default:
+						break;
 					}
 					tagDataModel.updateTag(tag);
 				}

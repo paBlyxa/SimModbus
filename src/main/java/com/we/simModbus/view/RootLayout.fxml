@@ -11,6 +11,9 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
+                  <MenuItem fx:id="openMenuItem" mnemonicParsing="false" onAction="#handleOpen" text="Open..." />
+                  <MenuItem mnemonicParsing="false" onAction="#handleSave" text="Save" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleSaveAs" text="Save As..." />
                   <MenuItem mnemonicParsing="false" onAction="#handleNewMasterTCP" text="New Master TCP" />
                   <MenuItem mnemonicParsing="false" onAction="#handleNewSlaveTCP" text="New Slave TCP" />
               <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Close" />
@@ -18,8 +21,10 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-                  <MenuItem mnemonicParsing="false" text="New tag" />
-              <MenuItem mnemonicParsing="false" text="Delete tag" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleNewTag" text="New tag" />
+              <MenuItem mnemonicParsing="false" onAction="#handleDeleteTag" text="Delete tag" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleImportTags" text="Import tags" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleExportTags" text="Export tags" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -31,6 +36,6 @@
       </MenuBar>
    </top>
    <center>
-      <TabPane fx:id="pane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
+      <TabPane fx:id="pane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
    </center>
 </BorderPane>

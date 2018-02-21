@@ -1,5 +1,8 @@
 package com.we.simModbus.model;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 import javafx.beans.value.ObservableValue;
 
 /**
@@ -8,6 +11,7 @@ import javafx.beans.value.ObservableValue;
  * @author fakadey
  *
  */
+@XmlTransient
 public abstract class Tag {
 
 	/**
@@ -31,6 +35,7 @@ public abstract class Tag {
 	 * 
 	 * @return название переменной
 	 */
+	@XmlElement
 	public String getName() {
 		return name;
 	}
@@ -47,6 +52,7 @@ public abstract class Tag {
 	 * Возвращает тип переменной
 	 * @return тип переменной
 	 */
+	@XmlElement
 	public Type getType() {
 		return type;
 	}
@@ -63,6 +69,7 @@ public abstract class Tag {
 	 * Возвращает адрес переменной
 	 * @return адрес переменной
 	 */
+	@XmlElement
 	public int getAddress() {
 		return address;
 	}

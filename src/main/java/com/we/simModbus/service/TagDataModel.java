@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.we.modbus.model.DataModelTable;
 import com.we.modbus.model.ModbusDataModel;
 import com.we.simModbus.model.Tag;
-import com.we.simModbus.model.TagInt16;
-import com.we.simModbus.model.Type;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -45,7 +43,7 @@ public class TagDataModel implements ModbusDataModel {
 
 	private void init() {
 		// В качестве образца добавляем данные.
-		Tag tag1 = new TagInt16();
+/*		Tag tag1 = new TagInt16();
 		tag1.setAddress(1);
 		tag1.setName("tag1");
 		tag1.setType(Type.INT);
@@ -57,7 +55,7 @@ public class TagDataModel implements ModbusDataModel {
 		tag2.setType(Type.INT);
 		tag2.setValue(0);
 
-		tagList.addAll(tag1, tag2);
+		tagList.addAll(tag1, tag2);*/
 	}
 
 	/**
@@ -179,6 +177,10 @@ public class TagDataModel implements ModbusDataModel {
 						tag.setValue(Float.intBitsToFloat(((data.get(tag.getAddress() + 1) & 0xFFFF) << 16)
 								+ (data.get(tag.getAddress()) & 0xFFFF)));
 						break;
+					case FLOATINV:
+						tag.setValue(Float.intBitsToFloat(((data.get(tag.getAddress() + 1) & 0xFFFF) )
+								+ ((data.get(tag.getAddress()) & 0xFFFF) << 16)));
+						break;
 					default:
 						break;
 					}
@@ -285,6 +287,10 @@ public class TagDataModel implements ModbusDataModel {
 		case FLOAT:
 			data.set(tag.getAddress(), Float.floatToIntBits(tag.getValue().floatValue()) & 0xFFFF);
 			data.set(tag.getAddress() + 1, (Float.floatToIntBits(tag.getValue().floatValue()) >> 16) & 0xFFFF);
+			break;
+		case FLOATINV:
+			data.set(tag.getAddress(), (Float.floatToIntBits(tag.getValue().floatValue())  >> 16) & 0xFFFF);
+			data.set(tag.getAddress() + 1, (Float.floatToIntBits(tag.getValue().floatValue())) & 0xFFFF);
 			break;
 		}
 		// Так как возможно к одной части памяти подключить несколько переменных, то нужно обновить их значения.

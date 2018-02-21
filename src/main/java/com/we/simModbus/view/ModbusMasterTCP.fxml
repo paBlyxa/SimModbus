@@ -14,7 +14,7 @@
             <Label fx:id="status" text="Label" />
             <Region HBox.hgrow="ALWAYS" />
             <Button layoutX="444.0" layoutY="274.0" mnemonicParsing="false" onAction="#handleNewTag" text="New" AnchorPane.bottomAnchor="2.0" />
-            <Button layoutX="495.0" layoutY="273.0" mnemonicParsing="false" onAction="#handleDelete" text="Delete" />
+            <Button layoutX="495.0" layoutY="273.0" mnemonicParsing="false" onAction="#handleDeleteTag" text="Delete" />
          </children>
          <padding>
             <Insets left="5.0" right="5.0" top="5.0" />
@@ -22,7 +22,7 @@
       </HBox>
    </bottom>
    <center>
-      <TableView fx:id="registerTable" editable="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+      <TableView id="tag-table" fx:id="registerTable" editable="true" prefHeight="200.0" prefWidth="200.0" stylesheets="@style.css" BorderPane.alignment="CENTER">
          <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
